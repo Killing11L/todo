@@ -101,49 +101,47 @@ class _TodoPageState extends State<TodoPage> {
                   _isHoveredIndex = -1;
                 });
               },
-              child: GestureDetector(
-                child: Stack(
-                  children: [
-                    TextField(
-                      controller: _textEditControllers[index],
-                      onSubmitted: (value) {
-                        print('MMMMMM onSubmitted ${value}');
-                        TaskStore.getInstance()
-                            .editTask(uuid: _tasks[index].id, desc: value);
-                        _editIsCompleted = true;
-                        setState(() {});
-                      },
-                      onTap: () {
-                        _editIndex = index;
-                      },
-                    ),
-                    if (_isHoveredIndex == index)
-                      Positioned(
-                        right: 0,
-                        child: Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.check),
-                              onPressed: () {
-                                TaskStore.getInstance().editTask(
-                                    uuid: _tasks[index].id,
-                                    desc:
-                                        _textEditControllers[index].text.trim(),
-                                    isComplete: true);
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () {
-                                TaskStore.getInstance()
-                                    .deleteTask(_tasks[index].id);
-                              },
-                            ),
-                          ],
-                        ),
+              child: Stack(
+                children: [
+                  TextField(
+                    controller: _textEditControllers[index],
+                    onSubmitted: (value) {
+                      print('MMMMMM onSubmitted ${value}');
+                      TaskStore.getInstance()
+                          .editTask(uuid: _tasks[index].id, desc: value);
+                      _editIsCompleted = true;
+                      setState(() {});
+                    },
+                    onTap: () {
+                      _editIndex = index;
+                    },
+                  ),
+                  if (_isHoveredIndex == index)
+                    Positioned(
+                      right: 0,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.check),
+                            onPressed: () {
+                              TaskStore.getInstance().editTask(
+                                  uuid: _tasks[index].id,
+                                  desc:
+                                      _textEditControllers[index].text.trim(),
+                                  isComplete: true);
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              TaskStore.getInstance()
+                                  .deleteTask(_tasks[index].id);
+                            },
+                          ),
+                        ],
                       ),
-                  ],
-                ),
+                    ),
+                ],
               ),
             );
           },
