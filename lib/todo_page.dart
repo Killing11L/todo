@@ -57,7 +57,6 @@ class _TodoPageState extends State<TodoPage> {
         child: ListView.builder(
           itemCount: _tasks.length + (_showInputField ? 1 : 0),
           itemBuilder: (context, index) {
-            print('MMMMMM ${index}');
             if (index == _tasks.length && _showInputField) {
               return TextField(
                 controller: _textInputController,
@@ -77,26 +76,11 @@ class _TodoPageState extends State<TodoPage> {
 
             return MouseRegion(
               onEnter: (event) {
-                if (_editIndex != -1) {
-                  print('edit task ${_textEditControllers[_editIndex].text}');
-                  TaskStore.getInstance().editTask(
-                      uuid: _tasks[_editIndex].id,
-                      desc: _textEditControllers[_editIndex].text.trim());
-                  _editIndex = -1;
-                }
-
                 setState(() {
                   _isHoveredIndex = index;
                 });
               },
               onExit: (event) {
-                if (_editIndex != -1) {
-                  print('edit task ${_textEditControllers[_editIndex].text}');
-                  TaskStore.getInstance().editTask(
-                      uuid: _tasks[_editIndex].id,
-                      desc: _textEditControllers[_editIndex].text.trim());
-                  _editIndex = -1;
-                }
                 setState(() {
                   _isHoveredIndex = -1;
                 });
@@ -129,6 +113,7 @@ class _TodoPageState extends State<TodoPage> {
                                   desc:
                                       _textEditControllers[index].text.trim(),
                                   isComplete: true);
+                                  setState(() {});
                             },
                           ),
                           IconButton(
@@ -136,6 +121,7 @@ class _TodoPageState extends State<TodoPage> {
                             onPressed: () {
                               TaskStore.getInstance()
                                   .deleteTask(_tasks[index].id);
+                                  setState(() {});
                             },
                           ),
                         ],
