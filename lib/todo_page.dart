@@ -24,6 +24,7 @@ class _TodoPageState extends State<TodoPage> {
 
   final ValueNotifier<bool> _taskIconNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<int> _taskIndexNotifier = ValueNotifier<int>(-1);
+  final ValueNotifier<int> _taskEditNotifier = ValueNotifier<int>(-1);
 
   @override
   void dispose() {
@@ -57,6 +58,7 @@ class _TodoPageState extends State<TodoPage> {
                 desc: _textEditControllers[_editIndex].text.trim());
           }
           _editIndex = -1;
+          _taskEditNotifier.value = -1;
         }
 
         setState(() {
@@ -110,13 +112,16 @@ class _TodoPageState extends State<TodoPage> {
                       setState(() {});
                     },
                     onTap: () {
+                      print("onTap");
                       _editIndex = index;
+                      _taskEditNotifier.value = index;
                     },
                   ),
                   TaskIcons(
                     highlightNotifier: _taskIconNotifier,
                     index: index,
                     indexNotifier: _taskIndexNotifier,
+                    editNotifier: _taskEditNotifier,
                   )
                 ],
               ),
@@ -161,10 +166,12 @@ class TaskIcons extends StatefulWidget {
       {super.key,
       required this.highlightNotifier,
       required this.index,
-      required this.indexNotifier});
+      required this.indexNotifier,
+      required this.editNotifier});
   final int index;
   final ValueNotifier<bool> highlightNotifier;
   final ValueNotifier<int> indexNotifier;
+  final ValueNotifier<int> editNotifier;
 
   @override
   State<TaskIcons> createState() => _TaskIconsState();
@@ -175,11 +182,15 @@ class _TaskIconsState extends State<TaskIcons> {
   void initState() {
     super.initState();
     widget.highlightNotifier.addListener(_handleHighlightChange);
+    widget.indexNotifier.addListener(_handleHighlightChange);
+    widget.editNotifier.addListener(_handleHighlightChange);
   }
 
   @override
   void dispose() {
     widget.highlightNotifier.removeListener(_handleHighlightChange);
+    widget.indexNotifier.removeListener(_handleHighlightChange);
+    widget.editNotifier.removeListener(_handleHighlightChange);
     super.dispose();
   }
 
@@ -195,14 +206,16 @@ class _TaskIconsState extends State<TaskIcons> {
       right: 0,
       child: Row(
         children: [
-          if (widget.highlightNotifier.value && (widget.indexNotifier.value == widget.index))
+          if (widget.highlightNotifier.value &&
+              (widget.indexNotifier.value == widget.index) && (widget.editNotifier.value != widget.index))
             IconButton(
               icon: const Icon(Icons.check),
               onPressed: () {
                 setState(() {});
               },
             ),
-          if (widget.highlightNotifier.value && (widget.indexNotifier.value == widget.index))
+          if (widget.highlightNotifier.value &&
+              (widget.indexNotifier.value == widget.index) && (widget.editNotifier.value != widget.index))
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {
