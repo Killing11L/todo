@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:todo/task.dart';
 import 'package:todo/task_store.dart';
 
@@ -25,8 +27,10 @@ class _TodoPageState extends State<TodoPage> {
     _tasks = TaskStore.getInstance().getTasks(false);
 
     _textEditControllers.clear();
-    _tasks.forEach(
-        (e) => _textEditControllers.add(TextEditingController(text: e.desc)));
+    _tasks.forEach((e) {
+      _textEditControllers.add(TextEditingController(text: e.desc));
+    });
+
     print('_showInputField: ${_showInputField}');
     return GestureDetector(
       onTapDown: (details) {
@@ -74,61 +78,48 @@ class _TodoPageState extends State<TodoPage> {
               );
             }
 
-            return MouseRegion(
-              onEnter: (event) {
-                setState(() {
-                  _isHoveredIndex = index;
-                });
-              },
-              onExit: (event) {
-                setState(() {
-                  _isHoveredIndex = -1;
-                });
-              },
-              child: Stack(
-                children: [
-                  TextField(
-                    controller: _textEditControllers[index],
-                    onSubmitted: (value) {
-                      print('MMMMMM onSubmitted ${value}');
-                      TaskStore.getInstance()
-                          .editTask(uuid: _tasks[index].id, desc: value);
-                      _editIsCompleted = true;
-                      setState(() {});
-                    },
-                    onTap: () {
-                      _editIndex = index;
-                    },
-                  ),
-                  if (_isHoveredIndex == index)
-                    Positioned(
-                      right: 0,
-                      child: Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.check),
-                            onPressed: () {
-                              TaskStore.getInstance().editTask(
-                                  uuid: _tasks[index].id,
-                                  desc:
-                                      _textEditControllers[index].text.trim(),
-                                  isComplete: true);
-                                  setState(() {});
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () {
-                              TaskStore.getInstance()
-                                  .deleteTask(_tasks[index].id);
-                                  setState(() {});
-                            },
-                          ),
-                        ],
+            return Stack(
+              children: [
+                TextField(
+                  controller: _textEditControllers[index],
+                  onSubmitted: (value) {
+                    print('MMMMMM onSubmitted ${value}');
+                    TaskStore.getInstance()
+                        .editTask(uuid: _tasks[index].id, desc: value);
+                    _editIsCompleted = true;
+                    setState(() {});
+                  },
+                  onTap: () {
+                    _editIndex = index;
+                  },
+                ),
+                Positioned(
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.check),
+                        onPressed: () {
+                          TaskStore.getInstance().editTask(
+                              uuid: _tasks[index].id,
+                              desc: _textEditControllers[index].text.trim(),
+                              isComplete: true);
+                          setState(() {});
+                        },
                       ),
-                    ),
-                ],
-              ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          TaskStore.getInstance()
+                              .deleteTask(_tasks[index].id);
+                          setState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             );
           },
         ),
