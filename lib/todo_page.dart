@@ -53,9 +53,8 @@ class _TodoPageState extends State<TodoPage> {
         } else if (!_showInputField && !_editIsCompleted) {
           if (_editIndex != -1) {
             print('edit task ${_textEditControllers[_editIndex].text}');
-            TaskStore.getInstance().editTask(
-                uuid: _tasks[_editIndex].id,
-                desc: _textEditControllers[_editIndex].text.trim());
+            TaskStore.getInstance()
+                .editTask(uuid: _tasks[_editIndex].id, desc: _textEditControllers[_editIndex].text.trim());
           }
           _editIndex = -1;
           _taskEditNotifier.value = -1;
@@ -77,8 +76,7 @@ class _TodoPageState extends State<TodoPage> {
                 controller: _textInputController,
                 onSubmitted: (value) {
                   if (value.isNotEmpty) {
-                    print(
-                        'onSubmitted add new task ${_textInputController.text}');
+                    print('onSubmitted add new task ${_textInputController.text}');
                     TaskStore.getInstance().add(value.trim());
                     _textInputController.clear();
                     setState(() {
@@ -106,8 +104,7 @@ class _TodoPageState extends State<TodoPage> {
                     controller: _textEditControllers[index],
                     onSubmitted: (value) {
                       print('MMMMMM onSubmitted ${value}');
-                      TaskStore.getInstance()
-                          .editTask(uuid: _tasks[index].id, desc: value);
+                      TaskStore.getInstance().editTask(uuid: _tasks[index].id, desc: value);
                       _editIsCompleted = true;
                       setState(() {});
                     },
@@ -207,7 +204,8 @@ class _TaskIconsState extends State<TaskIcons> {
       child: Row(
         children: [
           if (widget.highlightNotifier.value &&
-              (widget.indexNotifier.value == widget.index) && (widget.editNotifier.value != widget.index))
+              (widget.indexNotifier.value == widget.index) &&
+              (widget.editNotifier.value != widget.index))
             IconButton(
               icon: const Icon(Icons.check),
               onPressed: () {
@@ -215,7 +213,8 @@ class _TaskIconsState extends State<TaskIcons> {
               },
             ),
           if (widget.highlightNotifier.value &&
-              (widget.indexNotifier.value == widget.index) && (widget.editNotifier.value != widget.index))
+              (widget.indexNotifier.value == widget.index) &&
+              (widget.editNotifier.value != widget.index))
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {
