@@ -3,6 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:todo/task.dart';
 import 'package:todo/task_store.dart';
+import 'log.dart';
+
+enum TaskhandleFlag {
+  COMPLETE,
+  DELETE,
+}
 
 class TodoPage extends StatefulWidget {
   const TodoPage({super.key});
@@ -20,7 +26,6 @@ class _TodoPageState extends State<TodoPage> {
   int _editIndex = -1;
   bool _editIsCompleted = false;
   final List<TextEditingController> _textEditControllers = [];
-  int _isHoveredIndex = -1;
 
   final ValueNotifier<bool> _taskIconNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<int> _taskIndexNotifier = ValueNotifier<int>(-1);
@@ -32,8 +37,30 @@ class _TodoPageState extends State<TodoPage> {
     super.dispose();
   }
 
+  void _handleTask(TaskhandleFlag flag, int index) {
+    switch (flag) {
+      case TaskhandleFlag.COMPLETE:
+        {
+          hyLog("MMMM: ", StackTrace.current);
+          TaskStore.getInstance().editTask(uuid: _tasks[index].id, desc: _tasks[index].desc, isComplete: true);
+          break;
+        }
+      case TaskhandleFlag.DELETE:
+        {
+          hyLog("MMMM: ", StackTrace.current);
+          TaskStore.getInstance().deleteTask(_tasks[index].id);
+          break;
+        }
+
+      default:
+    }
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
+    print("_TodoPageState build");
+
     _tasks = TaskStore.getInstance().getTasks(false);
 
     _textEditControllers.clear();
@@ -41,42 +68,48 @@ class _TodoPageState extends State<TodoPage> {
       _textEditControllers.add(TextEditingController(text: e.desc));
     });
 
-    print('_showInputField: ${_showInputField}');
     return GestureDetector(
       onTapDown: (details) {
+        hyLog("MMMM: ", StackTrace.current);
         if (_showInputField) {
+          hyLog("MMMM: ", StackTrace.current);
           if (_textInputController.text.isNotEmpty) {
-            print('add new task ${_textInputController.text}');
+            hyLog("MMMM: ", StackTrace.current);
             TaskStore.getInstance().add(_textInputController.text.trim());
             _textInputController.clear();
           }
+          hyLog("MMMM: ", StackTrace.current);
         } else if (!_showInputField && !_editIsCompleted) {
+          hyLog("MMMM: ", StackTrace.current);
           if (_editIndex != -1) {
-            print('edit task ${_textEditControllers[_editIndex].text}');
+            hyLog("MMMM: ", StackTrace.current);
             TaskStore.getInstance()
                 .editTask(uuid: _tasks[_editIndex].id, desc: _textEditControllers[_editIndex].text.trim());
+            _editIndex = -1;
+            _taskEditNotifier.value = -1;
           }
-          _editIndex = -1;
-          _taskEditNotifier.value = -1;
+          hyLog("MMMM: ", StackTrace.current);
         }
 
+        hyLog("MMMM: ", StackTrace.current);
         setState(() {
           _tasks = TaskStore.getInstance().getTasks(false);
           _showInputField = !_showInputField;
         });
-        print('Clicked on empty, ${_showInputField}');
+        hyLog("MMMM: ", StackTrace.current);
       },
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(15),
         child: ListView.builder(
           itemCount: _tasks.length + (_showInputField ? 1 : 0),
           itemBuilder: (context, index) {
+            hyLog("MMMM: ", StackTrace.current);
             if (index == _tasks.length && _showInputField) {
+              print("_TodoPageState index == _tasks.length && _showInputField");
               return TextField(
                 controller: _textInputController,
                 onSubmitted: (value) {
                   if (value.isNotEmpty) {
-                    print('onSubmitted add new task ${_textInputController.text}');
                     TaskStore.getInstance().add(value.trim());
                     _textInputController.clear();
                     setState(() {
@@ -89,12 +122,10 @@ class _TodoPageState extends State<TodoPage> {
 
             return MouseRegion(
               onEnter: (event) {
-                print('_TodoPageState onEnter');
                 _taskIconNotifier.value = true;
                 _taskIndexNotifier.value = index;
               },
               onExit: (event) {
-                print('_TodoPageState onExit');
                 _taskIconNotifier.value = false;
                 _taskIndexNotifier.value = -1;
               },
@@ -103,13 +134,11 @@ class _TodoPageState extends State<TodoPage> {
                   TextField(
                     controller: _textEditControllers[index],
                     onSubmitted: (value) {
-                      print('MMMMMM onSubmitted ${value}');
                       TaskStore.getInstance().editTask(uuid: _tasks[index].id, desc: value);
                       _editIsCompleted = true;
                       setState(() {});
                     },
                     onTap: () {
-                      print("onTap");
                       _editIndex = index;
                       _taskEditNotifier.value = index;
                     },
@@ -119,6 +148,7 @@ class _TodoPageState extends State<TodoPage> {
                     index: index,
                     indexNotifier: _taskIndexNotifier,
                     editNotifier: _taskEditNotifier,
+                    handleTask: _handleTask,
                   )
                 ],
               ),
@@ -164,11 +194,13 @@ class TaskIcons extends StatefulWidget {
       required this.highlightNotifier,
       required this.index,
       required this.indexNotifier,
-      required this.editNotifier});
+      required this.editNotifier,
+      required this.handleTask});
   final int index;
   final ValueNotifier<bool> highlightNotifier;
   final ValueNotifier<int> indexNotifier;
   final ValueNotifier<int> editNotifier;
+  final Function(TaskhandleFlag, int) handleTask;
 
   @override
   State<TaskIcons> createState() => _TaskIconsState();
@@ -209,7 +241,7 @@ class _TaskIconsState extends State<TaskIcons> {
             IconButton(
               icon: const Icon(Icons.check),
               onPressed: () {
-                setState(() {});
+                widget.handleTask(TaskhandleFlag.COMPLETE, widget.index);
               },
             ),
           if (widget.highlightNotifier.value &&
@@ -218,7 +250,7 @@ class _TaskIconsState extends State<TaskIcons> {
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {
-                setState(() {});
+                widget.handleTask(TaskhandleFlag.DELETE, widget.index);
               },
             ),
         ],
