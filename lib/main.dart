@@ -150,8 +150,8 @@ class _MyHomePageState extends State<MyHomePage> {
           const SizedBox(
             height: 10,
           ),
-          const Expanded(
-            child: TaskList(),
+          Expanded(
+            child: isTodoSelected ? const TodoList() : const DoneList(),
           ),
         ],
       ),
@@ -159,14 +159,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class TaskList extends StatefulWidget {
-  const TaskList({super.key});
+class TodoList extends StatefulWidget {
+  const TodoList({super.key});
 
   @override
-  State<TaskList> createState() => _TaskListState();
+  State<TodoList> createState() => _TodoListState();
 }
 
-class _TaskListState extends State<TaskList> {
+class _TodoListState extends State<TodoList> {
   TextStyle taskStyle = const TextStyle(
     fontSize: 20,
     color: Colors.white,
@@ -176,9 +176,10 @@ class _TaskListState extends State<TaskList> {
 
   final DatabaseHelper _dbHelper = DatabaseHelper();
   List<Map<String, dynamic>> _tasks = [];
-  Map<int, TextEditingController> _controllers = {};
-  Map<int, FocusNode> _focusNodes = {};
-  double _totalTasksHeight = 0;
+  final Map<int, TextEditingController> _controllers = {};
+  final Map<int, FocusNode> _focusNodes = {};
+  final double _totalTasksHeight = 0;
+  final Map<int, bool> _hoverStates = {};
 
   @override
   void initState() {
@@ -224,7 +225,6 @@ class _TaskListState extends State<TaskList> {
           double totalTasksHeight = _totalTasksHeight;
           if (localPosition.dy > totalTasksHeight) {
             if (_tasks.last['msg'].isEmpty) {
-              print("id ${_tasks.last['id']}");
               await _dbHelper.deleteItem(_tasks.last['id']);
               await _loadTasks();
               setState(() {});
@@ -239,10 +239,12 @@ class _TaskListState extends State<TaskList> {
             final task = _tasks[index];
             _controllers[task['id']] ??= TextEditingController(text: task['msg']);
             _focusNodes[task['id']] ??= FocusNode();
+            _hoverStates[index] ??= false;
+
             TextField field = TextField(
               controller: _controllers[task['id']],
               focusNode: _focusNodes[task['id']],
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: (_hoverStates[index] ?? false) ? Colors.orange : Colors.white),
               cursorColor: Colors.white,
               decoration: InputDecoration(
                 hintText: task["msg"] ?? "",
@@ -267,23 +269,200 @@ class _TaskListState extends State<TaskList> {
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.radio_button_off,
-                    color: Colors.white,
-                    size: 15,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: field,
-                  ),
-                ],
+              child: MouseRegion(
+                onEnter: (_) {
+                  setState(() {
+                    _hoverStates[index] = true;
+                  });
+                },
+                onExit: (_) {
+                  setState(() {
+                    _hoverStates[index] = false;
+                  });
+                },
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.radio_button_off,
+                          color: Colors.white,
+                          size: 15,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: field,
+                        ),
+                      ],
+                    ),
+                    Positioned(
+                      right: 10,
+                      top: -12,
+                      child: AnimatedOpacity(
+                        opacity: (_hoverStates[index] ?? false) ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 100),
+                        child: IconButton(
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.all(Colors.white.withOpacity(0.8)),
+                          ),
+                          icon: const Icon(
+                            Icons.task_alt,
+                            size: 20,
+                          ),
+                          color: Colors.red,
+                          onPressed: () {
+                            _dbHelper.updateTaskState(task['id'], true);
+                            _loadTasks();
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class DoneList extends StatefulWidget {
+  const DoneList({super.key});
+
+  @override
+  State<DoneList> createState() => _DoneListState();
+}
+
+class _DoneListState extends State<DoneList> {
+  TextStyle taskStyle = const TextStyle(
+    fontSize: 20,
+    color: Colors.white,
+    decoration: TextDecoration.none,
+    fontWeight: FontWeight.w100,
+  );
+
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+  List<Map<String, dynamic>> _tasks = [];
+  final Map<int, TextEditingController> _controllers = {};
+  final Map<int, FocusNode> _focusNodes = {};
+  final Map<int, bool> _hoverStates = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTasks();
+  }
+
+  Future<void> _loadTasks() async {
+    List<Map<String, dynamic>> tasks = await _dbHelper.getItems().then((task) {
+      return task.where((val) => val['isDone'] == 1).toList();
+    });
+    setState(() {
+      _tasks = tasks;
+    });
+  }
+
+  @override
+  void dispose() {
+    _controllers.values.forEach((controller) => controller.dispose());
+    _focusNodes.values.forEach((node) => node.dispose());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withOpacity(0.0),
+      child: ListView.builder(
+        itemCount: _tasks.length,
+        itemBuilder: (ctx, index) {
+          final task = _tasks[index];
+          _controllers[task['id']] ??= TextEditingController(text: task['msg']);
+          _focusNodes[task['id']] ??= FocusNode();
+          _hoverStates[index] ??= false;
+
+          TextField field = TextField(
+            controller: _controllers[task['id']],
+            focusNode: _focusNodes[task['id']],
+            style: TextStyle(color: (_hoverStates[index] ?? false) ? Colors.orange : Colors.white),
+            cursorColor: Colors.white,
+            decoration: InputDecoration(
+              hintText: task["msg"] ?? "",
+              hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+              border: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.only(top: -15),
+              isDense: true,
+            ),
+            maxLines: null,
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.done,
+          );
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: MouseRegion(
+              onEnter: (_) {
+                setState(() {
+                  _hoverStates[index] = true;
+                });
+              },
+              onExit: (_) {
+                setState(() {
+                  _hoverStates[index] = false;
+                });
+              },
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.radio_button_off,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: field,
+                      ),
+                    ],
+                  ),
+                  Positioned(
+                    right: 10,
+                    top: -12,
+                    child: AnimatedOpacity(
+                      opacity: (_hoverStates[index] ?? false) ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 100),
+                      child: IconButton(
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStateProperty.all(Colors.white.withOpacity(0.8)),
+                        ),
+                        icon: const Icon(
+                          Icons.settings_backup_restore,
+                          size: 20,
+                        ),
+                        color: Colors.red,
+                        onPressed: () {
+                          _dbHelper.updateTaskState(task['id'], false);
+                          _loadTasks();
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -347,6 +526,16 @@ class DatabaseHelper {
     return await db.update(
       "task",
       {'msg': newTask},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> updateTaskState(int id, bool isDone) async {
+    Database db = await database;
+    await db.update(
+      "task",
+      {'isDone': isDone ? 1 : 0},
       where: 'id = ?',
       whereArgs: [id],
     );
