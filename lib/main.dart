@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
@@ -28,6 +29,12 @@ void main() async {
     await windowManager.show();
     await windowManager.focus();
   });
+
+  if (kIsWeb) {
+    print("web");
+  } else {
+    print("windows");
+  }
 
   runApp(const MyApp());
 }
@@ -304,14 +311,18 @@ class _TodoListState extends State<TodoList> {
                         opacity: (_hoverStates[index] ?? false) ? 1.0 : 0.0,
                         duration: const Duration(milliseconds: 100),
                         child: IconButton(
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStateProperty.all(Colors.white.withOpacity(0.8)),
+                          icon: Container(
+                            padding: const EdgeInsets.all(4), // 控制背景的大小
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.8), // 背景色
+                              shape: BoxShape.circle, // 圆形背景
+                            ),
+                            child: const Icon(
+                              Icons.task_alt,
+                              size: 20,
+                              color: Colors.red,
+                            ),
                           ),
-                          icon: const Icon(
-                            Icons.task_alt,
-                            size: 20,
-                          ),
-                          color: Colors.red,
                           onPressed: () {
                             _dbHelper.updateTaskState(task['id'], true);
                             _loadTasks();
@@ -443,14 +454,18 @@ class _DoneListState extends State<DoneList> {
                       opacity: (_hoverStates[index] ?? false) ? 1.0 : 0.0,
                       duration: const Duration(milliseconds: 100),
                       child: IconButton(
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(Colors.white.withOpacity(0.8)),
+                        icon: Container(
+                          padding: const EdgeInsets.all(4), // 控制背景的大小
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.8), // 背景色
+                            shape: BoxShape.circle, // 圆形背景
+                          ),
+                          child: const Icon(
+                            Icons.settings_backup_restore,
+                            size: 20,
+                            color: Colors.red,
+                          ),
                         ),
-                        icon: const Icon(
-                          Icons.settings_backup_restore,
-                          size: 20,
-                        ),
-                        color: Colors.red,
                         onPressed: () {
                           _dbHelper.updateTaskState(task['id'], false);
                           _loadTasks();
