@@ -70,6 +70,12 @@ class MyApp extends StatelessWidget {
   }
 }
 
+enum PageState {
+  todo,
+  done,
+  setting,
+}
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title, required this.isEnter});
   final String title;
@@ -80,88 +86,102 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool isTodoSelected = true;
+  PageState page = PageState.todo;
+  ValueNotifier<double> opacity = ValueNotifier<double>(0.35);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      color: Colors.black.withOpacity(0.35),
-      child: Column(
-        children: [
-          ValueListenableBuilder<bool>(
-            valueListenable: widget.isEnter,
-            builder: (context, isEnter, child) {
-              return Container(
-                height: 50,
-                child: Stack(
-                  children: [
-                    Positioned(
-                      left: 0,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                isTodoSelected = true;
-                              });
-                            },
-                            child: Text(
-                              "ToDo",
-                              style: TextStyle(
-                                fontSize: isTodoSelected ? 35 : 25,
-                                decoration: TextDecoration.none,
-                                color: Colors.white,
+    return ValueListenableBuilder(
+      valueListenable: opacity,
+      builder: (BuildContext context, value, Widget? child) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          color: Colors.black.withOpacity(value),
+          child: Column(
+            children: [
+              ValueListenableBuilder<bool>(
+                valueListenable: widget.isEnter,
+                builder: (context, isEnter, child) {
+                  return Container(
+                    height: 50,
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          left: 0,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    page = PageState.todo;
+                                  });
+                                },
+                                child: Text(
+                                  "ToDo",
+                                  style: TextStyle(
+                                    fontSize: (page == PageState.todo) ? 35 : 25,
+                                    decoration: TextDecoration.none,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                isTodoSelected = false;
-                              });
-                            },
-                            child: Text(
-                              "Done",
-                              style: TextStyle(
-                                fontSize: isTodoSelected ? 25 : 35,
-                                decoration: TextDecoration.none,
-                                color: Colors.white,
+                              const SizedBox(
+                                width: 10,
                               ),
-                            ),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    page = PageState.done;
+                                  });
+                                },
+                                child: Text(
+                                  "Done",
+                                  style: TextStyle(
+                                    fontSize: (page == PageState.done) ? 35 : 25,
+                                    decoration: TextDecoration.none,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                    if (isEnter)
-                      Positioned(
-                        right: 0,
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.settings,
-                            color: Colors.white,
-                          ),
-                          iconSize: 30,
-                          onPressed: () {},
                         ),
-                      ),
-                  ],
-                ),
-              );
-            },
+                        if (isEnter)
+                          Positioned(
+                            right: 0,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.settings,
+                                color: Colors.white,
+                              ),
+                              iconSize: (page == PageState.setting) ? 40 : 25,
+                              onPressed: () {
+                                setState(() {
+                                  page = PageState.setting;
+                                });
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Expanded(
+                child: switch (page) {
+                  PageState.todo => const TodoList(),
+                  PageState.done => const DoneList(),
+                  PageState.setting => SettingPage(opacity: opacity),
+                },
+              ),
+            ],
           ),
-          const SizedBox(
-            height: 10,
-          ),
-          Expanded(
-            child: isTodoSelected ? const TodoList() : const DoneList(),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -312,10 +332,10 @@ class _TodoListState extends State<TodoList> {
                         duration: const Duration(milliseconds: 100),
                         child: IconButton(
                           icon: Container(
-                            padding: const EdgeInsets.all(4), // 控制背景的大小
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.8), // 背景色
-                              shape: BoxShape.circle, // 圆形背景
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              // color: Colors.white.withOpacity(0.8),
+                              shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.task_alt,
@@ -455,10 +475,10 @@ class _DoneListState extends State<DoneList> {
                       duration: const Duration(milliseconds: 100),
                       child: IconButton(
                         icon: Container(
-                          padding: const EdgeInsets.all(4), // 控制背景的大小
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.8), // 背景色
-                            shape: BoxShape.circle, // 圆形背景
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            // color: Colors.white.withOpacity(0.8),
+                            shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.settings_backup_restore,
@@ -514,11 +534,6 @@ class DatabaseHelper {
         isDone INTEGER
       )
     ''');
-
-    await db.insert('task', {'msg': "task1", 'isDone': 0});
-    await db.insert('task', {'msg': "task2", 'isDone': 0});
-    await db.insert('task', {'msg': "task3", 'isDone': 0});
-    await db.insert('task', {'msg': "task4", 'isDone': 1});
   }
 
   Future<int> insertItem(String task, int isDone) async {
@@ -553,6 +568,44 @@ class DatabaseHelper {
       {'isDone': isDone ? 1 : 0},
       where: 'id = ?',
       whereArgs: [id],
+    );
+  }
+}
+
+class SettingPage extends StatefulWidget {
+  SettingPage({super.key, required this.opacity});
+  ValueNotifier<double> opacity;
+
+  @override
+  State<SettingPage> createState() => _SettingPageState();
+}
+
+class _SettingPageState extends State<SettingPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Text(
+                "背景透明度:",
+                style: TextStyle(color: Colors.white),
+              ),
+              Slider(
+                value: widget.opacity.value,
+                label: widget.opacity.value.toStringAsFixed(1),
+                onChanged: (double data) {
+                  setState(() {
+                    widget.opacity.value = data;
+                  });
+                },
+              ),
+            ],
+          )
+        ],
+      ),
     );
   }
 }
