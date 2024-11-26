@@ -306,7 +306,7 @@ class _TodoListState extends State<TodoList> {
                     ),
                     Positioned(
                       right: 10,
-                      top: -12,
+                      top: -16,
                       child: AnimatedOpacity(
                         opacity: (_hoverStates[index] ?? false) ? 1.0 : 0.0,
                         duration: const Duration(milliseconds: 100),
@@ -449,7 +449,7 @@ class _DoneListState extends State<DoneList> {
                   ),
                   Positioned(
                     right: 10,
-                    top: -12,
+                    top: -16,
                     child: AnimatedOpacity(
                       opacity: (_hoverStates[index] ?? false) ? 1.0 : 0.0,
                       duration: const Duration(milliseconds: 100),
