@@ -52,18 +52,21 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: GestureDetector(
-        onPanStart: (details) {
-          windowManager.startDragging();
-        },
-        child: MouseRegion(
-          onEnter: (event) {
-            isEnter.value = true;
+      home: Scaffold (
+        backgroundColor: Colors.transparent,
+        body: GestureDetector(
+          onPanStart: (details) {
+            windowManager.startDragging();
           },
-          onExit: (event) {
-            isEnter.value = false;
-          },
-          child: MyHomePage(title: 'Flutter Demo Home Page', isEnter: isEnter),
+          child: MouseRegion(
+            onEnter: (event) {
+              isEnter.value = true;
+            },
+            onExit: (event) {
+              isEnter.value = false;
+            },
+            child: MyHomePage(title: 'Flutter Demo Home Page', isEnter: isEnter),
+          ),
         ),
       ),
     );
@@ -117,17 +120,22 @@ class _MyHomePageState extends State<MyHomePage> {
                                     page = PageState.todo;
                                   });
                                 },
-                                child: Text(
-                                  "ToDo",
-                                  style: TextStyle(
-                                    fontSize: (page == PageState.todo) ? 35 : 25,
-                                    decoration: TextDecoration.none,
-                                    color: Colors.white,
+                                child: AnimatedScale(
+                                  scale: (page == PageState.todo) ? 1 : 0.7,
+                                  duration: const Duration(milliseconds: 100),
+                                  child: const Text(
+                                    "ToDo",
+                                    style: TextStyle(
+                                      fontSize: 35,
+                                      decoration: TextDecoration.none,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
                               const SizedBox(
-                                width: 10,
+                                width: 0,
                               ),
                               GestureDetector(
                                 onTap: () {
@@ -135,12 +143,17 @@ class _MyHomePageState extends State<MyHomePage> {
                                     page = PageState.done;
                                   });
                                 },
-                                child: Text(
-                                  "Done",
-                                  style: TextStyle(
-                                    fontSize: (page == PageState.done) ? 35 : 25,
-                                    decoration: TextDecoration.none,
-                                    color: Colors.white,
+                                child: AnimatedScale(
+                                  scale: (page == PageState.done) ? 1 : 0.7,
+                                  duration: const Duration(milliseconds: 100),
+                                  child: const Text(
+                                    "Done",
+                                    style: TextStyle(
+                                      fontSize: 35,
+                                      decoration: TextDecoration.none,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -150,17 +163,21 @@ class _MyHomePageState extends State<MyHomePage> {
                         if (isEnter)
                           Positioned(
                             right: 0,
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.settings,
-                                color: Colors.white,
+                            child: AnimatedScale(
+                              scale: (page == PageState.setting) ? 1 : 0.7,
+                              duration: const Duration(milliseconds: 100),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.settings,
+                                  color: Colors.white,
+                                ),
+                                iconSize: 40,
+                                onPressed: () {
+                                  setState(() {
+                                    page = PageState.setting;
+                                  });
+                                },
                               ),
-                              iconSize: (page == PageState.setting) ? 40 : 25,
-                              onPressed: () {
-                                setState(() {
-                                  page = PageState.setting;
-                                });
-                              },
                             ),
                           ),
                       ],
@@ -251,7 +268,7 @@ class _TodoListState extends State<TodoList> {
           final localPosition = box.globalToLocal(details.globalPosition);
           double totalTasksHeight = _totalTasksHeight;
           if (localPosition.dy > totalTasksHeight) {
-            if (_tasks.last['msg'].isEmpty) {
+            if (_tasks.isNotEmpty && _tasks.last['msg'].isEmpty) {
               await _dbHelper.deleteItem(_tasks.last['id']);
               await _loadTasks();
               setState(() {});
@@ -281,7 +298,7 @@ class _TodoListState extends State<TodoList> {
                 enabledBorder: InputBorder.none,
                 errorBorder: InputBorder.none,
                 disabledBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.only(top: -15),
+                contentPadding: const EdgeInsets.only(top: -13),
                 isDense: true,
               ),
               maxLines: null,
@@ -326,27 +343,35 @@ class _TodoListState extends State<TodoList> {
                     ),
                     Positioned(
                       right: 10,
-                      top: -16,
+                      top: -12,
                       child: AnimatedOpacity(
                         opacity: (_hoverStates[index] ?? false) ? 1.0 : 0.0,
                         duration: const Duration(milliseconds: 100),
-                        child: IconButton(
-                          icon: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              // color: Colors.white.withOpacity(0.8),
-                              shape: BoxShape.circle,
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.task_alt,
+                                size: 20,
+                                color: Colors.red,
+                              ),
+                              onPressed: () {
+                                _dbHelper.updateTaskState(task['id'], true);
+                                _loadTasks();
+                              },
                             ),
-                            child: const Icon(
-                              Icons.task_alt,
-                              size: 20,
-                              color: Colors.red,
-                            ),
-                          ),
-                          onPressed: () {
-                            _dbHelper.updateTaskState(task['id'], true);
-                            _loadTasks();
-                          },
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_forever,
+                                size: 20,
+                                color: Colors.red,
+                              ),
+                              onPressed: () {
+                                _dbHelper.deleteItem(task['id']);
+                                _loadTasks();
+                              },
+                            )
+                          ],
                         ),
                       ),
                     ),
@@ -429,7 +454,7 @@ class _DoneListState extends State<DoneList> {
               enabledBorder: InputBorder.none,
               errorBorder: InputBorder.none,
               disabledBorder: InputBorder.none,
-              contentPadding: const EdgeInsets.only(top: -15),
+              contentPadding: const EdgeInsets.only(top: -13),
               isDense: true,
             ),
             maxLines: null,
@@ -457,7 +482,7 @@ class _DoneListState extends State<DoneList> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(
-                        Icons.radio_button_off,
+                        Icons.radio_button_checked,
                         color: Colors.white,
                         size: 15,
                       ),
@@ -469,27 +494,35 @@ class _DoneListState extends State<DoneList> {
                   ),
                   Positioned(
                     right: 10,
-                    top: -16,
+                    top: -12,
                     child: AnimatedOpacity(
                       opacity: (_hoverStates[index] ?? false) ? 1.0 : 0.0,
                       duration: const Duration(milliseconds: 100),
-                      child: IconButton(
-                        icon: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            // color: Colors.white.withOpacity(0.8),
-                            shape: BoxShape.circle,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.settings_backup_restore,
+                              size: 20,
+                              color: Colors.red,
+                            ),
+                            onPressed: () {
+                              _dbHelper.updateTaskState(task['id'], false);
+                              _loadTasks();
+                            },
                           ),
-                          child: const Icon(
-                            Icons.settings_backup_restore,
-                            size: 20,
-                            color: Colors.red,
-                          ),
-                        ),
-                        onPressed: () {
-                          _dbHelper.updateTaskState(task['id'], false);
-                          _loadTasks();
-                        },
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete_forever,
+                              size: 20,
+                              color: Colors.red,
+                            ),
+                            onPressed: () {
+                              _dbHelper.deleteItem(task['id']);
+                              _loadTasks();
+                            },
+                          )
+                        ],
                       ),
                     ),
                   ),
@@ -551,6 +584,11 @@ class DatabaseHelper {
     return db.delete("task", where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<void> deleteAll() async {
+    Database db = await database;
+    db.delete("task", where: null);
+  }
+
   Future<int> updateTask(int id, String newTask) async {
     Database db = await database;
     return await db.update(
@@ -581,6 +619,8 @@ class SettingPage extends StatefulWidget {
 }
 
 class _SettingPageState extends State<SettingPage> {
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -603,9 +643,48 @@ class _SettingPageState extends State<SettingPage> {
                 },
               ),
             ],
+          ),
+          Center(
+            child: TextButton(
+              style: ButtonStyle(backgroundColor:WidgetStatePropertyAll(Colors.white) ),
+              onPressed: () {
+                _showDeleteConfirmationDialog(context);
+              },
+              child: const Text("清除所有记录"),
+            ),
           )
         ],
       ),
+    );
+  }
+
+   void _showDeleteConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("确认删除"),
+          content: const Text("您确定要清除所有记录吗？此操作不可撤销！"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // 关闭对话框
+              },
+              child: const Text("取消"),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(); // 关闭对话框
+                await _dbHelper.deleteAll(); // 执行删除操作
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("所有记录已清除")),
+                );
+              },
+              child: const Text("确认"),
+            ),
+          ],
+        );
+      },
     );
   }
 }
