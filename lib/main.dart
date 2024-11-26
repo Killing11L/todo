@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,17 +26,9 @@ void main() async {
   );
 
   windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.setAlwaysOnTop(true);
     await windowManager.show();
     await windowManager.focus();
   });
-
-  if (kIsWeb) {
-    print("web");
-  } else {
-    print("windows");
-  }
-
   runApp(const MyApp());
 }
 
@@ -52,7 +45,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: Scaffold (
+      home: Scaffold(
         backgroundColor: Colors.transparent,
         body: GestureDetector(
           onPanStart: (details) {
@@ -91,6 +84,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   PageState page = PageState.todo;
   ValueNotifier<double> opacity = ValueNotifier<double>(0.35);
+  bool alwaysTop_ = false;
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +92,8 @@ class _MyHomePageState extends State<MyHomePage> {
       valueListenable: opacity,
       builder: (BuildContext context, value, Widget? child) {
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(10),
+          clipBehavior: Clip.none,
           color: Colors.black.withOpacity(value),
           child: Column(
             children: [
@@ -162,22 +157,38 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         if (isEnter)
                           Positioned(
-                            right: 0,
-                            child: AnimatedScale(
-                              scale: (page == PageState.setting) ? 1 : 0.7,
-                              duration: const Duration(milliseconds: 100),
-                              child: IconButton(
-                                icon: const Icon(
-                                  Icons.settings,
-                                  color: Colors.white,
+                            right: -5,
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.push_pin_outlined,
+                                    color: alwaysTop_ ? Colors.red : Colors.white,
+                                  ),
+                                  iconSize: 25,
+                                  onPressed: () {
+                                    alwaysTop_ = !alwaysTop_;
+                                    windowManager.setAlwaysOnTop(alwaysTop_);
+                                    setState(() {});
+                                  },
                                 ),
-                                iconSize: 40,
-                                onPressed: () {
-                                  setState(() {
-                                    page = PageState.setting;
-                                  });
-                                },
-                              ),
+                                AnimatedScale(
+                                  scale: (page == PageState.setting) ? 1 : 0.6,
+                                  duration: const Duration(milliseconds: 100),
+                                  child: IconButton(
+                                    icon: const Icon(
+                                      Icons.settings,
+                                      color: Colors.white,
+                                    ),
+                                    iconSize: 40,
+                                    onPressed: () {
+                                      setState(() {
+                                        page = PageState.setting;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                       ],
@@ -646,11 +657,14 @@ class _SettingPageState extends State<SettingPage> {
           ),
           Center(
             child: TextButton(
-              style: ButtonStyle(backgroundColor:WidgetStatePropertyAll(Colors.white) ),
+              style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.white)),
               onPressed: () {
                 _showDeleteConfirmationDialog(context);
               },
-              child: const Text("清除所有记录"),
+              child: Text(
+                "清除所有数据",
+                style: GoogleFonts.notoSansSc(),
+              ),
             ),
           )
         ],
@@ -658,7 +672,7 @@ class _SettingPageState extends State<SettingPage> {
     );
   }
 
-   void _showDeleteConfirmationDialog(BuildContext context) {
+  void _showDeleteConfirmationDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
