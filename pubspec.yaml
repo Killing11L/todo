@@ -35,7 +35,8 @@ dependencies:
   path_provider: ^2.1.5
   sqflite: ^2.4.1
   google_fonts: ^6.2.1
-
+  flutter_launcher_icons: ^0.14.1
+  tray_manager: ^0.3.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -63,6 +64,8 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - assets/icon/todo_icon.ico
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -94,3 +97,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+
+flutter_launcher_icons:
+  windows:
+    generate: true
+    image_path: "assets/icon/todo_icon.ico"
+    icon_size: 48 # min:48, max:256, default: 48

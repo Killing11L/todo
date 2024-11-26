@@ -1,13 +1,14 @@
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'dart:async';
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import 'package:flutter/material.dart' hide MenuItem;
+import 'package:tray_manager/tray_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +30,43 @@ void main() async {
     await windowManager.show();
     await windowManager.focus();
   });
+
+  await trayManager.setIcon('assets/icon/todo_icon.ico');
+
+  Menu menu = Menu(
+    items: [
+      MenuItem(
+        key: 'show_window',
+        label: 'Show Window',
+      ),
+      MenuItem.separator(),
+      MenuItem(
+        key: 'exit_app',
+        label: 'Exit App',
+      ),
+    ],
+  );
+  await trayManager.setToolTip("How to use system tray with Flutter: 鼠标滑过提示");
+  await trayManager.setContextMenu(menu);
+
   runApp(const MyApp());
+}
+
+// 实现 TrayListener
+class _trayListener with TrayListener {
+  @override
+  void onTrayMenuItemClick(MenuItem menuItem) {
+    switch (menuItem.key) {
+      case 'show_window':
+        // 显示窗口
+        windowManager.show();
+        break;
+      case 'exit_app':
+        // 退出应用
+        windowManager.close();
+        break;
+    }
+  }
 }
 
 class MyApp extends StatelessWidget {
