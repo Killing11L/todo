@@ -17,11 +17,11 @@ void main() async {
   databaseFactory = databaseFactoryFfi;
 
   WindowOptions windowOptions = const WindowOptions(
-    size: Size(350, 400),
-    minimumSize: Size(350, 400),
+    size: Size(330, 350),
+    minimumSize: Size(330, 350),
     center: true,
     backgroundColor: Colors.transparent,
-    skipTaskbar: false,
+    skipTaskbar: true,
     titleBarStyle: TitleBarStyle.hidden,
     windowButtonVisibility: false,
   );
@@ -36,37 +36,20 @@ void main() async {
   Menu menu = Menu(
     items: [
       MenuItem(
-        key: 'show_window',
-        label: 'Show Window',
+        key: 'cancel',
+        label: '取消',
       ),
       MenuItem.separator(),
       MenuItem(
         key: 'exit_app',
-        label: 'Exit App',
+        label: '退出',
       ),
     ],
   );
-  await trayManager.setToolTip("How to use system tray with Flutter: 鼠标滑过提示");
+  await trayManager.setToolTip("todo list");
   await trayManager.setContextMenu(menu);
 
   runApp(const MyApp());
-}
-
-// 实现 TrayListener
-class _trayListener with TrayListener {
-  @override
-  void onTrayMenuItemClick(MenuItem menuItem) {
-    switch (menuItem.key) {
-      case 'show_window':
-        // 显示窗口
-        windowManager.show();
-        break;
-      case 'exit_app':
-        // 退出应用
-        windowManager.close();
-        break;
-    }
-  }
 }
 
 class MyApp extends StatelessWidget {
@@ -118,10 +101,41 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with TrayListener {
   PageState page = PageState.todo;
   ValueNotifier<double> opacity = ValueNotifier<double>(0.35);
   bool alwaysTop_ = false;
+
+  @override
+  void initState() {
+    trayManager.addListener(this);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    trayManager.removeListener(this);
+    super.dispose();
+  }
+
+  @override
+  void onTrayIconMouseDown() {
+    windowManager.show();
+  }
+
+  @override
+  void onTrayIconRightMouseDown() {
+    trayManager.popUpContextMenu();
+  }
+
+  @override
+  void onTrayMenuItemClick(MenuItem menuItem) {
+    print("${menuItem.key}");
+    if (menuItem.key == "exit_app") {
+      windowManager.close();
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +158,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         Positioned(
                           left: 0,
                           child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               GestureDetector(
                                 onTap: () {
@@ -165,9 +178,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                     ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(
-                                width: 0,
                               ),
                               GestureDetector(
                                 onTap: () {
