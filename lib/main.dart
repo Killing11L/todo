@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'dart:async';
@@ -130,12 +130,11 @@ class _MyHomePageState extends State<MyHomePage> with TrayListener {
 
   @override
   void onTrayMenuItemClick(MenuItem menuItem) {
-    print("${menuItem.key}");
     if (menuItem.key == "exit_app") {
       windowManager.close();
+      return;
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -702,16 +701,36 @@ class _SettingPageState extends State<SettingPage> {
               ),
             ],
           ),
+          const SizedBox(
+            height: 10,
+          ),
           Center(
-            child: TextButton(
-              style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.white)),
-              onPressed: () {
-                _showDeleteConfirmationDialog(context);
-              },
-              child: Text(
-                "清除所有数据",
-                style: GoogleFonts.notoSansSc(),
-              ),
+            child: Column(
+              children: [
+                TextButton(
+                  style: const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.white)),
+                  onPressed: () {
+                    _showDeleteConfirmationDialog(context);
+                  },
+                  child: Text(
+                    "清除所有数据",
+                    style: GoogleFonts.notoSansSc(),
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                TextButton(
+                  style: const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.white)),
+                  onPressed: () {
+                    windowManager.close();
+                  },
+                  child: Text(
+                    "退出",
+                    style: GoogleFonts.notoSansSc(),
+                  ),
+                ),
+              ],
             ),
           )
         ],
