@@ -166,12 +166,12 @@ class _MyHomePageState extends State<MyHomePage> with TrayListener {
                                 child: AnimatedScale(
                                   scale: (page == PageState.todo) ? 1 : 0.7,
                                   duration: const Duration(milliseconds: 100),
-                                  child: const Text(
+                                  child: Text(
                                     "ToDo",
                                     style: TextStyle(
                                       fontSize: 35,
                                       decoration: TextDecoration.none,
-                                      color: Colors.white,
+                                      color: (page == PageState.todo) ? Colors.white : Colors.white60,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -186,12 +186,12 @@ class _MyHomePageState extends State<MyHomePage> with TrayListener {
                                 child: AnimatedScale(
                                   scale: (page == PageState.done) ? 1 : 0.7,
                                   duration: const Duration(milliseconds: 100),
-                                  child: const Text(
+                                  child: Text(
                                     "Done",
                                     style: TextStyle(
                                       fontSize: 35,
                                       decoration: TextDecoration.none,
-                                      color: Colors.white,
+                                      color: (page == PageState.done) ? Colors.white : Colors.white60,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -744,22 +744,32 @@ class _SettingPageState extends State<SettingPage> {
         return AlertDialog(
           title: const Text("确认删除"),
           content: const Text("您确定要清除所有记录吗？此操作不可撤销！"),
-          actions: <Widget>[
+          actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // 关闭对话框
               },
-              child: const Text("取消"),
+              child: Text(
+                "取消",
+                style: GoogleFonts.notoSansSc(),
+              ),
             ),
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop(); // 关闭对话框
                 await _dbHelper.deleteAll(); // 执行删除操作
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("所有记录已清除")),
+                  SnackBar(
+                      content: Text(
+                    "所有记录已清除",
+                    style: GoogleFonts.notoSansSc(),
+                  )),
                 );
               },
-              child: const Text("确认"),
+              child: Text(
+                "确认",
+                style: GoogleFonts.notoSansSc(),
+              ),
             ),
           ],
         );

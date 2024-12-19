@@ -1,16 +1,7 @@
 # todo_list
 
-A new Flutter project.
+用于学习flutter的小项目，仿照[小黄条](https://www.yynote.cn/)应用实现基本功能，数据存储在本地的数据库中。
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+应用图示：  
+![app](./assets/app_info.png)  
+点击空白处可添加新任务。
